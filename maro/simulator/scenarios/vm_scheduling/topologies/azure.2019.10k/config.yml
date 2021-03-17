@@ -11,17 +11,45 @@ CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vm_cpu_readings-
 
 PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.10k/azure.2019.10k.tar.gz"
 
-PM:
-  AMOUNT: 100
-  CPU: 32
-  # The unit of the memory is GB.
-  MEMORY: 128
-  # GPU: 4
-  # NOTE: Energy consumption parameters should refer to more research.
-  POWER_CURVE:
-    # The calibration parameter used for the CPU utilization vs energy consumption model.
-    CALIBRATION_PARAMETER: 1.4
-    # The idle power usage of a machine.
-    BUSY_POWER: 10
-    # The busy power usage of a machine.
-    IDLE_POWER: 1
+# True means kill all VMs on the overload PM.
+# False means only count these VMs as failed allocation, but not kill them.
+KILL_ALL_VMS_IF_OVERLOAD: True
+
+# Oversubscription configuration.
+# Max CPU oversubscription rate.
+MAX_CPU_OVERSUBSCRIPTION_RATE: 1
+# Max memory oversubscription rate.
+MAX_MEM_OVERSUBSCRIPTION_RATE: 1
+# Max CPU utilization rate.
+MAX_UTILIZATION_RATE: 1
+
+components:
+  pm:
+    - pm_type: 0
+      cpu: 32
+      memory: 128
+      power_curve:
+        calibration_parameter: 1.4
+        busy_power: 10
+        idle_power: 1
+  rack:
+    - type: 'a'
+      pm:
+        - pm_type: 0
+          pm_amount: 10
+  cluster:
+    - type: 'JP1'
+      rack:
+        - rack_type: 'a'
+          rack_amount: 10
+
+architecture:
+  region:
+    - name: 'APAC'
+      zone:
+        - name: 'asia-northeast1'
+          data_center:
+            - name: 'Japan'
+              cluster:
+                - type: 'JP1'
+                  cluster_amount: 1
